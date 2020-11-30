@@ -1,0 +1,116 @@
+--- 
+  version: "3.7"
+  networks: 
+    development: 
+      name: development
+  services:
+
+    mongo: 
+      container_name: mongo
+      depends_on: 
+        - mssql
+        - mysql
+        - postgresql
+        - portainer
+      environment: 
+        MONGO_INITDB_ROOT_PASSWORD: dev
+        MONGO_INITDB_ROOT_USERNAME: root
+      healthcheck: 
+        interval: 10s
+        retries: 5
+        start_period: 40s
+        test: "echo 'db.runCommand(\"ping\").ok' | mongo mongo:27017/test --quiet"
+        timeout: 10s
+      image: "mongo:4.4.1"
+      networks: 
+        - development
+      ports: 
+        - "27017:27017"
+      restart: always
+    mssql: 
+      container_name: mssql
+      depends_on: 
+        - mysql
+        - postgresql
+        - portainer
+      environment: 
+        - ACCEPT_EULA=Y
+        - SA_PASSWORD=Dev!(Dev)
+        - MSSQL_PID=Express
+      healthcheck: 
+        interval: 10s
+        retries: 10
+        start_period: 10s
+        test: "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P \"$$SA_PASSWORD\" -Q \"SELECT 1\" || exit 1"
+        timeout: 3s
+      image: "mcr.microsoft.com/mssql/server:2019-latest"
+      networks: 
+        - development
+      ports: 
+        - "8433:1433"
+      restart: always
+    mysql: 
+      container_name: mysql
+      depends_on: 
+        - postgresql
+        - portainer
+      environment: 
+        MYSQL_ROOT_PASSWORD: dev
+      healthcheck:
+        test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost" ]
+        timeout: 20s
+        retries: 10
+      image: "mariadb:10.5.5"
+      networks: 
+        - development
+      ports: 
+        - "3306:3306"
+      restart: always
+    portainer: 
+      container_name: portainer
+      image: "portainer/portainer-ce:2.0.0"
+      networks: 
+        - development
+      ports:
+        - "9000:9000"
+      restart: always
+      # Admin password: dev
+      command: --admin-password "$$2y$$05$$b.3Au8PCAm.u972x62TzsO9NuYPYNhqojV.V01vwci9DsEqFGf/K."
+    postgresql: 
+      container_name: postgresql
+      depends_on: 
+        - portainer
+      environment: 
+        POSTGRES_PASSWORD: dev
+      healthcheck: 
+        interval: 1s
+        retries: 30
+        test: [ "CMD", "pg_isready", "-U", "postgres" ]
+        timeout: 3s
+      image: "postgres:13.0"
+      networks: 
+        - development
+      ports: 
+        - "5432:5432"
+      restart: always
+    redis: 
+      container_name: redis
+      depends_on: 
+        - mongo
+        - mssql
+        - mysql
+        - postgresql
+        - portainer
+      entrypoint: "redis-server --appendonly yes"
+      healthcheck: 
+        interval: 1s
+        retries: 30
+        test: ["CMD", "redis-cli", "ping"]
+        timeout: 3s
+      image: "redis:6.0.8"
+      networks: 
+        - development
+      ports: 
+        - "6379:6379"
+      restart: always
+        
