@@ -117,7 +117,7 @@
       # docker run -d --name echo -p 9:9999 abrarov/tcp-echo --port 9999 --inactivity-timeout 300
       image: abrarov/tcp-echo:1.6.3
       networks:
-        - base_default
+        - development
       hostname: tcp-echo
       restart: always
       ports: 
@@ -126,7 +126,7 @@
     rest-echo:
       image: kennethreitz/httpbin
       networks:
-        - base_default
+        - development
       hostname: rest-echo
       restart: always
       ports:
