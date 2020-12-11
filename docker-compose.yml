@@ -74,6 +74,8 @@
       ports:
         - "9000:9000"
       restart: always
+      volumes:
+        - "/var/run/docker.sock:/var/run/docker.sock"
       # Admin password: dev
       command: --admin-password "$$2y$$05$$b.3Au8PCAm.u972x62TzsO9NuYPYNhqojV.V01vwci9DsEqFGf/K."
     postgresql: 
